@@ -10,7 +10,6 @@ MCP servers and skill files are text. Untrusted text. An attacker writes `ignore
 
 dsh-mcpaudit catches these before they reach your agent — and, when you enable it, blocks them from loading at all.
 
-> **What happened to dsh-mcpguard?** This is the rename + 1.0 release of the plugin formerly known as dsh-mcpguard. Version 1.0.0 builds on the v0.3 rule engine and adds the audit & lifecycle layer that defines the new name. The old `mcpguard_*` tool names are replaced by `mcpaudit_*`.
 
 ## Install
 
