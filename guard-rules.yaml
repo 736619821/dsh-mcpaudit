@@ -1,0 +1,130 @@
+# dsh-mcpaudit 配置 — guard-rules.yaml
+# 用户可自定义规则：覆盖 severity、启用/禁用规则、设置白名单路径/哈希
+#
+# 规则覆盖示例（把 INJ-002 从 critical 降到 medium）：
+#   rules:
+#     INJ-002:
+#       severity: medium
+#
+# 禁用某条规则：
+#   rules:
+#     PWD-001:
+#       enabled: false
+#
+# 白名单可信文件（跳过扫描）：
+#   whitelist:
+#     paths:
+#       - C:\Users\pc\.claude\skills\official-fetch
+#       - C:\Users\pc\.mcp.json
+#     hashes:
+#       - sha256:abc123...  # 可选，支持 SHA-256 前缀匹配
+
+# =============================================================================
+# 全局配置
+# =============================================================================
+config:
+  # 增量扫描：记录文件哈希，只扫描改动过的文件
+  incremental: true
+
+  # 增量扫描状态文件路径（默认：插件数据目录）
+  hashStorePath: ""
+
+  # 跳过扫描的保护目录列表（比硬编码多，可自行增加）
+  protectedDirs:
+    - .ssh
+    - .aws
+    - .gnupg
+    - .git/credentials
+    - .git/config
+
+  # 最小报告严重度（低于此级别的 findings 不出现在报告中）
+  minReportSeverity: info
+
+  # 是否输出脱敏后的报告（关闭后可查看原始 payload 用于调试）
+  redactInReport: true
+
+  # 增量扫描时，保护目录永远跳过（即使不在 protectedDirs 里）
+  alwaysProtectSensitiveDirs: true
+
+# =============================================================================
+# 规则覆盖配置
+# 每个规则的可用字段：enabled (bool), severity (critical|high|medium|low|info)
+# =============================================================================
+rules:
+  # 示例：内部可信仓库，把 INJ-002 从 critical 降到 medium
+  # INJ-002:
+  #   severity: medium
+
+  # 示例：关闭 PWD-001（密码提示太吵可关闭）
+  # PWD-001:
+  #   enabled: false
+
+  # 示例：把 B64-001 调高到 high
+  # B64-001:
+  #   severity: high
+
+# =============================================================================
+# 白名单：可信的官方 MCP / skill，跳过扫描
+# =============================================================================
+whitelist:
+  # 白名单路径（支持前缀匹配，路径分隔符自动适配 Windows/Linux）
+  paths: []
+
+  # 白名单文件哈希（SHA-256，支持前 8 位前缀匹配）
+  hashes: []
+
+# =============================================================================
+# 生命周期钩子配置
+# =============================================================================
+lifecycle:
+  # autoScan: true  → skill/MCP 加载前自动触发扫描
+  # autoScan: false → 保持手动调用（默认 false，兼容现有行为）
+  autoScan: false
+
+  # blockMode: true  → 扫描到 critical/high 风险时阻止加载
+  # blockMode: false → 扫描到风险仅告警，不阻止加载
+  blockMode: false
+
+  # 告警模式：只记录不阻止，即使 blockMode 为 false 也写入告警
+  alertOnly: false
+
+  # 阻止加载的最低风险等级（critical | high | medium）
+  blockMinSeverity: critical
+
+# =============================================================================
+# 审计日志配置
+# =============================================================================
+audit:
+  # enabled: true → 开启审计日志
+  enabled: false
+
+  # 日志格式：jsonl（行文本，每行一条记录）或 sqlite
+  format: jsonl
+
+  # SQLite 数据库路径（format=sqlite 时使用）
+  dbPath: ""
+
+  # JSONL 日志文件路径（format=jsonl 时使用）
+  jsonlPath: ""
+
+  # 最大日志文件大小（MB），超过则轮转（仅 jsonl 格式）
+  maxSizeMB: 10
+
+  # 是否在报告中显示「哪些目录被保护跳过扫描」
+  showSkippedDirs: true
+
+# =============================================================================
+# 报告格式配置
+# =============================================================================
+report:
+  # 默认输出格式：json | markdown | sarif
+  defaultFormat: json
+
+  # markdown 报告是否包含完整上下文（前后 5 行代码片段）
+  showContextLines: true
+
+  # SARIF 报告的 SARIF version
+  sarifVersion: "2.1.0"
+
+  # 是否在 JSON 报告里附带所有格式（一次性返回多格式）
+  embedAllFormats: false
